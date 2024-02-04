@@ -19,6 +19,10 @@ const storage = multer.diskStorage({
     }
 });
 
+app.get('/', (req, res) => {
+    res.send('Hello World');
+});
+
 const upload = multer({ storage: storage });
 
 // Ruta para manejar la subida de archivos
