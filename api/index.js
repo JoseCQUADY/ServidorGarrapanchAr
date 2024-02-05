@@ -36,7 +36,6 @@ app.post('/api/upload', upload.single('file'), (req, res) => {
     if (!fs.existsSync('Files')) {
         fs.mkdirSync('Files', { recursive: true });
     }
-
     fs.renameSync(req.file.path, filepath);
     
     const fileType = getFileType(fileExtension);
