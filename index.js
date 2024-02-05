@@ -1,13 +1,23 @@
+import { initializeApp } from "firebase/app";
+import { getAnalytics } from "firebase/analytics";
+import { getStorage, ref ,uploadBytes} from "firebase/storage";
+import firebaseConfig from './firebase.config';
+
 const express = require('express');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const cors = require('cors');
-
 const app = express();
 const port = process.env.PORT || 3000;
+const dotenv = require('dotenv').config();
+const firebaseapp = initializeApp(firebaseConfig);
+const analytics = getAnalytics(firebaseapp);
+const storageFB = getStorage();
+
 
 app.use(cors({origin: '*'}));
+
 app.use('/static', express.static('Files'));
 // Configuración de Multer para manejar la carga de archivos
 const storage = multer.diskStorage({
@@ -27,15 +37,17 @@ const upload = multer({ storage: storage });
 
 // Ruta para manejar la subida de archivos
 app.post('/upload', upload.single('file'), (req, res) => {
+    
     const filename = req.body.filename;
-    const filepath = path.join('Files', `${filename}${path.extname(req.file.originalname)}`);
+    const filepath = path.join('Files/', `${filename}${path.extname(req.file.originalname)}`);
     const fileExtension = path.extname(req.file.originalname).toLowerCase();
-
+    const storageRef = ref(storageFB, filepath);
+    const uploadFB = uploadBytes(storageRef, req.file.buffer);
     console.log(fileExtension);
-    if (!fs.existsSync('Files')) {
-        fs.mkdirSync('Files', { recursive: true });
-    }
-    fs.renameSync(req.file.path, filepath);
+    // if (!fs.existsSync('Files')) {
+    //     fs.mkdirSync('Files', { recursive: true });
+    // }
+    // fs.renameSync(req.file.path, filepath);
     
     const fileType = getFileType(fileExtension);
     console.log(fileType);
