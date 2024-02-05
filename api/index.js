@@ -27,7 +27,7 @@ app.get('/api', (req, res) => {
 const upload = multer({ storage: storage });
 
 // Ruta para manejar la subida de archivos
-app.post('/upload', upload.single('file'), (req, res) => {
+app.post('/api/upload', upload.single('file'), (req, res) => {
     const filename = req.body.filename;
     const filepath = path.join('Files', `${filename}${path.extname(req.file.originalname)}`);
     const fileExtension = path.extname(req.file.originalname).toLowerCase();
@@ -50,7 +50,7 @@ app.post('/upload', upload.single('file'), (req, res) => {
 });
 
 // Ruta para obtener la lista de archivos
-app.post('/fetch_files', (req, res) => {
+app.post('/api/fetch_files', (req, res) => {
     const folderName = 'Files';
     const fileData = fs.readdirSync(folderName);
 
