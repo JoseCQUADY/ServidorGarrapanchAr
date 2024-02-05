@@ -135,6 +135,11 @@ function getFileType(extension) {
     }
 }
 
+
+app.get('/list-files', (req, res) => {
+    const files = fs.readdirSync(path.join(__dirname, 'Files'));
+    res.json({ files });
+});
 app.listen(port, () => {
     console.log(`Server running on port ${port}`);
 });
