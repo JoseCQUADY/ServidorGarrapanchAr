@@ -8,9 +8,15 @@
         }
     ],
       "rewrites": [{ "source": "/api/(.*)", "destination": "/api" }],
-      "methods": ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+      "routes": [
+        {
+          "src": "/(.*)",
+          "dest": "./",
+          "methods": ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
           "headers": {
             "Access-Control-Allow-Origin": "*"
           }
+        }
+      ]
     }
 
