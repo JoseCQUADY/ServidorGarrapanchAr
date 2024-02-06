@@ -1,6 +1,4 @@
-import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
-import { getStorage, ref, uploadBytes } from "firebase/storage";
+
 
 const express = require('express');
 const multer = require('multer');
@@ -11,6 +9,8 @@ const app = express();
 const port = process.env.PORT || 3000;
 const dotenv = require('dotenv').config();
 const firebase = require('firebase/app');
+const {getStorage,ref,uploadBytes} = require('firebase/storage');
+
 const firebaseConfig = {
     apiKey: process.env.FIREBASE_API_KEY,
     authDomain: process.env.FIREBASE_AUTH_DOMAIN,
@@ -21,9 +21,10 @@ const firebaseConfig = {
     measurementId: process.env.FIREBASE_MEASUREMENT_ID
 };
 
-const storageFB = getStorage();
 
 firebase.initializeApp(firebaseConfig);
+
+const storageFB = getStorage();
 
 app.use(cors({ origin: '*' }));
 
