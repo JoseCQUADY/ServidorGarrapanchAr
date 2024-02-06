@@ -9,7 +9,7 @@ const app = express();
 const port = process.env.PORT || 3000;
 const dotenv = require('dotenv').config();
 const firebase = require('firebase/app');
-const {getStorage,ref,uploadBytes} = require('firebase/storage');
+const { getStorage, ref, uploadBytes } = require('firebase/storage');
 
 const firebaseConfig = {
     apiKey: process.env.FIREBASE_API_KEY,
@@ -24,11 +24,15 @@ const firebaseConfig = {
 
 app.use('/static', express.static('Files'));
 
+firebase.initializeApp(firebaseConfig);
+
 const storageFB = getStorage();
 
-app.use(cors({ origin: '*' }));
-firebase.initializeApp(firebaseConfig);
 const upload = multer({ storage: multer.memoryStorage() });
+
+app.use(cors({ origin: '*' }));
+
+
 
 
 app.get('/api', (req, res) => {
@@ -46,7 +50,7 @@ app.post('/upload', upload.single('file'), (req, res) => {
     const storageRef = ref(storageFB, filepath);
     uploadBytes(storageRef, req.file.buffer);
     console.log(fileExtension);
-   
+
     const fileType = getFileType(fileExtension);
     // console.log(fileType);
     // res.json({
