@@ -1,6 +1,6 @@
 import { initializeApp } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
-import { getStorage, ref ,uploadBytes} from "firebase/storage";
+import { getStorage, ref, uploadBytes } from "firebase/storage";
 
 const express = require('express');
 const multer = require('multer');
@@ -10,22 +10,22 @@ const cors = require('cors');
 const app = express();
 const port = process.env.PORT || 3000;
 const dotenv = require('dotenv').config();
-
+const firebase = require('firebase/app');
 const firebaseConfig = {
-  apiKey: process.env.FIREBASE_API_KEY,
-  authDomain: process.env.FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.FIREBASE_PROJECT_ID,
-  storageBucket: process.env.FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.FIREBASE_APP_ID,
-  measurementId: process.env.FIREBASE_MEASUREMENT_ID
+    apiKey: process.env.FIREBASE_API_KEY,
+    authDomain: process.env.FIREBASE_AUTH_DOMAIN,
+    projectId: process.env.FIREBASE_PROJECT_ID,
+    storageBucket: process.env.FIREBASE_STORAGE_BUCKET,
+    messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID,
+    appId: process.env.FIREBASE_APP_ID,
+    measurementId: process.env.FIREBASE_MEASUREMENT_ID
 };
 
 const storageFB = getStorage();
-const firebaseApp = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
 
-app.use(cors({origin: '*'}));
+firebase.initializeApp(firebaseConfig);
+
+app.use(cors({ origin: '*' }));
 
 app.use('/static', express.static('Files'));
 // Configuración de Multer para manejar la carga de archivos
@@ -46,18 +46,18 @@ const upload = multer({ storage: storage });
 
 // Ruta para manejar la subida de archivos
 app.post('/upload', upload.single('file'), (req, res) => {
-    
+
     const filename = req.body.filename;
     const filepath = path.join('Files/', `${filename}${path.extname(req.file.originalname)}`);
     const fileExtension = path.extname(req.file.originalname).toLowerCase();
     const storageRef = ref(storageFB, filepath);
-    const uploadFB = uploadBytes(storageRef, req.file.buffer);
+    uploadBytes(storageRef, req.file.buffer);
     console.log(fileExtension);
     // if (!fs.existsSync('Files')) {
     //     fs.mkdirSync('Files', { recursive: true });
     // }
     // fs.renameSync(req.file.path, filepath);
-    
+
     const fileType = getFileType(fileExtension);
     console.log(fileType);
     res.json({
