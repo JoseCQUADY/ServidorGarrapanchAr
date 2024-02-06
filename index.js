@@ -22,28 +22,20 @@ const firebaseConfig = {
 };
 
 
-firebase.initializeApp(firebaseConfig);
+app.use('/static', express.static('Files'));
 
 const storageFB = getStorage();
 
 app.use(cors({ origin: '*' }));
+firebase.initializeApp(firebaseConfig);
+const upload = multer({ storage: multer.memoryStorage() });
 
-app.use('/static', express.static('Files'));
-// Configuración de Multer para manejar la carga de archivos
-const storage = multer.diskStorage({
-    destination: function (req, file, cb) {
-        cb(null, 'Files/');
-    },
-    filename: function (req, file, cb) {
-        cb(null, req.body.filename + path.extname(file.originalname));
-    }
-});
 
 app.get('/api', (req, res) => {
     res.send('Hello World');
 });
 
-const upload = multer({ storage: storage });
+
 
 // Ruta para manejar la subida de archivos
 app.post('/upload', upload.single('file'), (req, res) => {
@@ -54,18 +46,14 @@ app.post('/upload', upload.single('file'), (req, res) => {
     const storageRef = ref(storageFB, filepath);
     uploadBytes(storageRef, req.file.buffer);
     console.log(fileExtension);
-    // if (!fs.existsSync('Files')) {
-    //     fs.mkdirSync('Files', { recursive: true });
-    // }
-    // fs.renameSync(req.file.path, filepath);
-
+   
     const fileType = getFileType(fileExtension);
-    console.log(fileType);
-    res.json({
-        filename: `${filename}${path.extname(req.file.originalname)}`,
-        fileType: fileType,
-        success: true
-    });
+    // console.log(fileType);
+    // res.json({
+    //     filename: `${filename}${path.extname(req.file.originalname)}`,
+    //     fileType: fileType,
+    //     success: true
+    // });
 
 });
 
