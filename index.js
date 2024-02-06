@@ -9,20 +9,20 @@ const app = express();
 const port = process.env.PORT || 3000;
 const dotenv = require('dotenv').config();
 const firebase = require('firebase/app');
-const { getStorage, ref, uploadBytes } = require('firebase/storage');
+const { getStorage, ref, uploadBytes, getDownloadURL } = require('firebase/storage');
 
 const firebaseConfig = {
-    apiKey: process.env.FIREBASE_API_KEY,
-    authDomain: process.env.FIREBASE_AUTH_DOMAIN,
-    projectId: process.env.FIREBASE_PROJECT_ID,
-    storageBucket: process.env.FIREBASE_STORAGE_BUCKET,
-    messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID,
-    appId: process.env.FIREBASE_APP_ID,
-    measurementId: process.env.FIREBASE_MEASUREMENT_ID
+    apiKey: process.env.API_KEY,
+    authDomain: process.env.AUTH_DOMAIN,
+    projectId: process.env.PROJECT_ID,
+    storageBucket: process.env.STORAGE_BUCKET,
+    messagingSenderId: process.env.MESSAGING_SENDER_ID,
+    appId: process.env.APP_ID,
+    measurementId: process.env.MEASUREMENT_ID
 };
 
 
-app.use('/static', express.static('Files'));
+// app.use('/static', express.static('Files'));
 
 firebase.initializeApp(firebaseConfig);
 
@@ -33,32 +33,38 @@ const upload = multer({ storage: multer.memoryStorage() });
 app.use(cors({ origin: '*' }));
 
 
-
+async function uploadToFirebase(req,filepath) {
+    const storageRef = ref(storageFB, filepath);
+    await uploadBytes(storageRef, req.file.buffer);
+    const url = await getDownloadURL(storageRef);
+    return url;
+}
 
 app.get('/api', (req, res) => {
     res.send('Hello World');
 });
 
-
-
 // Ruta para manejar la subida de archivos
 app.post('/upload', upload.single('file'), (req, res) => {
 
     const filename = req.body.filename;
-    const filepath = path.join('Files/', `${filename}${path.extname(req.file.originalname)}`);
+    const filepath = `${filename}${path.extname(req.file.originalname)}`;
     const fileExtension = path.extname(req.file.originalname).toLowerCase();
-    const storageRef = ref(storageFB, filepath);
-    uploadBytes(storageRef, req.file.buffer);
-    console.log(fileExtension);
-
     const fileType = getFileType(fileExtension);
+    uploadToFirebase(req,filepath).then((url) => res.json({
+        filename: filepath,
+        fileUrl : url,
+        fileType: fileType,
+        success: true
+    }));
+
     // console.log(fileType);
     // res.json({
     //     filename: `${filename}${path.extname(req.file.originalname)}`,
     //     fileType: fileType,
     //     success: true
     // });
-
+    
 });
 
 // Ruta para obtener la lista de archivos
