@@ -1,5 +1,9 @@
 
 
+//To future programmer: refactorize this code to create new controllers instead of using the index.js file, shouldn´t be hard cause the code is already written,
+//just need to be organized.
+
+const {pool} = require('./db.js');
 const express = require('express');
 const multer = require('multer');
 const path = require('path');
@@ -11,6 +15,9 @@ const dotenv = require('dotenv').config();
 const firebase = require('firebase/app');
 const { getStorage, ref, uploadBytes, getDownloadURL } = require('firebase/storage');
 
+app.use(cors({ origin: '*' }));
+
+const fetch = require('node-fetch');
 const firebaseConfig = {
     apiKey: process.env.API_KEY,
     authDomain: process.env.AUTH_DOMAIN,
@@ -22,16 +29,10 @@ const firebaseConfig = {
 };
 
 
-// app.use('/static', express.static('Files'));
-
 firebase.initializeApp(firebaseConfig);
 
 const storageFB = getStorage();
-
 const upload = multer({ storage: multer.memoryStorage() });
-
-app.use(cors({ origin: '*' }));
-
 
 async function uploadToFirebase(req,filepath) {
     const storageRef = ref(storageFB, filepath);
@@ -40,15 +41,40 @@ async function uploadToFirebase(req,filepath) {
     return url;
 }
 
-app.get('/api', (req, res) => {
-    res.send('Hello World');
+app.post('/upload_file', upload.none(), (req, res) => {
+    const result = pool.query('INSERT INTO ubications (latitud,longitud,tag, url,tipo,nombre) VALUES (?,?,?,?,?,?)', [req.body.latitude,req.body.longitude,req.body.tag,req.body.route_file,req.body.file_type,req.body.file_name], (err, result) => {
+        if (err) throw err;
+        console.log(result);
+       const ubicationData = req.body.latitude;
+       console.log('Datos recibidos:', ubicationData);
+       res.json({ message: 'Datos recibidos correctamente' });
+    });
 });
 
-// Ruta para manejar la subida de archivos
+app.get('/imagen/:imagenId', async (req, res) => {
+    const imagenId = req.params.imagenId;
+    const firebaseStorageUrl = `https://firebasestorage.googleapis.com/v0/b/garrapanchar.appspot.com/o/${imagenId}?alt=media`;
+
+    try {
+        const response = await fetch(firebaseStorageUrl);
+        if (!response.ok) {
+            throw new Error('Error al obtener la imagen desde Firebase');
+        }
+        const imageArrayBuffer = await response.arrayBuffer();
+        const contentType = response.headers.get('content-type');
+        res.end(Buffer.from(imageArrayBuffer), 'binary');
+    } catch (error) {
+        console.error('Error al obtener la imagen desde Firebase:', error);
+        res.status(500).send('Error al obtener la imagen desde Firebase');
+    }
+});
+
+
+// Ruta para manejar la subida de archivos y subir a Firebase
 app.post('/upload', upload.single('file'), (req, res) => {
 
-    const filename = req.body.filename;
-    const filepath = `${filename}${path.extname(req.file.originalname)}`;
+    const fileName = req.body.filename;
+    const filepath = `${fileName}${path.extname(req.file.originalname)}`;
     const fileExtension = path.extname(req.file.originalname).toLowerCase();
     const fileType = getFileType(fileExtension);
     uploadToFirebase(req,filepath).then((url) => res.json({
@@ -57,15 +83,14 @@ app.post('/upload', upload.single('file'), (req, res) => {
         fileType: fileType,
         success: true
     }));
-
-    // console.log(fileType);
-    // res.json({
-    //     filename: `${filename}${path.extname(req.file.originalname)}`,
-    //     fileType: fileType,
-    //     success: true
-    // });
-    
 });
+
+app.get('/ubications',  async (req, res) => {
+    const result = pool.query('SELECT * FROM `ubications`', function (err, rows, fields) {
+        if (err) throw err;
+        res.json(data = rows);
+    });
+  });
 
 // Ruta para obtener la lista de archivos
 app.post('/api/fetch_files', (req, res) => {
@@ -155,11 +180,6 @@ function getFileType(extension) {
     }
 }
 
-
-app.get('/list-files', (req, res) => {
-    const files = fs.readdirSync(path.join(__dirname, 'Files'));
-    res.json({ files });
-});
 app.listen(port, () => {
     console.log(`Server running on port ${port}`);
 });
