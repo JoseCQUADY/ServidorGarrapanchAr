@@ -1,12 +1,12 @@
-## Instrucciones para levantar el servidor
+## Instructions to Start the Server
 
-1. Clonar el repositorio.
-2. Comprobar que se tiene Node.js en el sistema.
-3. Desde la terminal del proyecto, ejecutar el siguiente comando: 
+1. Clone the repository.
+2. Ensure that Node.js is installed on the system.
+3. From the project's terminal, execute the following command: 
     ```bash
     npm install express multer path fs cors firebase dotenv mysql2 node-fetch@2 && npm install
     ```
-4. Inicializar el servidor con el siguiente comando: 
+4. Initialize the server with the following command: 
     ```bash
     node index.js
     ```
